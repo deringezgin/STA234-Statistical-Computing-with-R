@@ -1,0 +1,19 @@
+---
+title: "In-Class Example"
+author: "Derin Gezgin"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## In-Class Example
+
+```{r}
+c(1, FALSE)
+```
+This code combines 1 and False to give output (1, 0)
