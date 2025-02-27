@@ -1,0 +1,612 @@
+---
+title: 'STA234: Homework 2'
+author: "Derin Gezgin"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Problem #1
+
+Using [Ozone hourly 2024 data](https://aqs.epa.gov/aqsweb/airdata/download_files.html) compare the EDA findings with those done in class for the 2020 data.
+
+------------------------------------------------------------------------
+
+Our Exploratory Data Analysis (EDA) for the USEPA hourly ozone data for 2020 had the following questions:
+
+-   Which counties in the U.S. have the highest levels of ambient ozone pollution? (Lecture-4 Page 6)
+
+-   Are hourly ozone levels on average higher in New York state than are in California? (Lecture-4 Page 25)
+
+-   Are hourly ozone levels on average higher in New York City then are in Los Angeles? (Lecture-4 Page 5)
+
+To answer these questions for the 2024 data, we can follow a similar path. We can start by reading the data from the .csv file
+
+```{r}
+ozone.2024 = read.csv("../../DATA/hourly_44201_2024.csv", header = TRUE)
+```
+
+------------------------------------------------------------------------
+
+The first research question looks for the counties in the US with the highest levels of ambient ozone pollution. To answer this question, we would first need the list of counties within the states.
+
+```{r}
+group.counties = aggregate(ozone.2024$Sample.Measurement,
+                           by = list(ozone.2024$State.Name,
+                                     ozone.2024$County.Name),
+                           FUN = mean)
+```
+
+As we group the data by counties and took the mean ozone level for each county, now we can sort them by the ozone level.
+
+```{r}
+sorted.counties = group.counties[order(group.counties$x,
+                                       decreasing=TRUE),]
+```
+
+To view the counties with the highest ambient ozone pollution, we can check the head of the `sorted.counties` list.
+
+```{r}
+head(sorted.counties, 10)
+```
+
+This would give us the counties with the highest ozone pollution. Compared to the 2020 analysis -which I checked from the lecture slides- we can see similar counties (Colorado-Clear Creek, Wyoming-Albany, Colorado-Gilpin) in top-5.
+
+------------------------------------------------------------------------
+
+To determine if the hourly ozone levels on average are higher in New York then are in California, we can group our data by state and apply the `summary` function.
+
+```{r}
+group.states.summary = aggregate(ozone.2024$Sample.Measurement,
+                                 by = list(ozone.2024$State.Name),
+                                 FUN=summary)
+```
+
+Following this, we can extract and combine New York and California from this to be able to compare them
+
+```{r}
+NY.summary = group.states.summary[group.states.summary$Group.1 == "New York",]
+CA.summary = group.states.summary[group.states.summary$Group.1 == "California",]
+NY.CA.summary = rbind(NY.summary, CA.summary)
+NY.CA.summary
+```
+
+When we look at the summary output for New York and California, we can see that California has slightly higher mean hourly ozone levels compared to New York.
+
+------------------------------------------------------------------------
+
+To determine if the hourly ozone levels on average are higher in New York City then are in LA using the 5-number summary, we can group the data-frame by counties using the `summary` function.
+
+```{r}
+group.counties.summary = aggregate(ozone.2024$Sample.Measurement,
+                                   by = list(ozone.2024$State.Name,
+                                             ozone.2024$County.Name),
+                                   FUN = summary)
+```
+
+Following this, we can simply extract and combine the summaries for New York City and Los Angeles.
+
+```{r}
+NYC.summary = group.counties.summary[group.counties.summary$Group.2 == "New York", ]
+LA.summary = group.counties.summary[group.counties.summary$Group.2 == "Los Angeles", ]
+NYC.LA.summary = rbind(NYC.summary, LA.summary)
+NYC.LA.summary
+```
+
+From this table, we can see that Los Angeles has a slightly higher average hourly ozone level compared to the New York City.
+
+# Problem #2
+
+Collecting data is often a messy process resulting in multiple errors in the data. Consider the following small vector representing the weights of 10 adults in pounds.
+
+```{r}
+my.weights <- c(150, 138, 289, 239, 12, 103, 310, 200, 218, 178)
+```
+
+As far as we know, it’s not possible for an adult to weigh 12 pounds, so that is most likely an error. Change this value to NA, and then find the standard deviation of the weights after removing the NA value.
+
+------------------------------------------------------------------------
+
+To replace the value 12 with NA we can use the *exactly equal to* operator.
+
+```{r}
+my.weights[my.weights == 12] = NA
+my.weights
+```
+
+Before calculating the standard deviation, we should remove the `NA` value from the vector
+
+```{r}
+my.weights = my.weights[!is.na(my.weights)]
+my.weights
+```
+
+Finally, we can use the `sd` function to calculate the standard deviation
+
+```{r}
+sd(my.weights)
+```
+
+# Problem #3
+
+Consider the following variables: age and income:
+
+```{r}
+age <- c("middle age", "senior", "middle age", "senior", "senior", "senior", "senior", "middle age")
+income <- c("lower", "lower", "upper", "middle", "upper", "lower", "lower", "middle")
+```
+
+### What is the class of each variable?
+
+To find out what class is `age` and `income`, we can use the `class` function.
+
+```{r}
+class(age)
+class(income)
+```
+
+We can see that both `age` and `income` are in the `character` class.
+
+------------------------------------------------------------------------
+
+### Change the age variable to a factor with levels for age as: youth, young adult, middle age, and senior.
+
+To change the age variable in a factor, we can simply use the `factor` function
+
+```{r}
+age.factor = factor(age,
+                    levels = c("youth", "young adult", "middle age", "senior"))
+age.factor
+```
+
+------------------------------------------------------------------------
+
+### Change the income variable to a factor with levels as lower, middle, and upper.
+
+Same as the previous one, to change the `income` variable to a factor, we can use the `factor` function
+
+```{r}
+income.factor = factor(income,
+                       levels = c("lower", "middle", "upper"))
+income.factor
+```
+
+# Problem #4
+
+Suppose you keep track of the mileage each time you fill up. At your last 8 fill-ups the mileage was: 65311, 65624, 65908, 66219, 66499, 66821, 67145, 67447.
+
+Enter this data into R. Use the function diff on the data (use ?diff). Use the documentation for diff function to learn about it and then explain briefly what does this function give you?
+
+------------------------------------------------------------------------
+
+To enter this mileage data into `R`, we can basically save these values in a vector
+
+```{r}
+mileage = c(65311, 65624, 65908, 66219, 66499, 66821, 67145, 67447)
+```
+
+When I checked the hep documentation and examples, I saw that the diff function basically takes the difference between each consecutive element in a vector. For example, in this case the elements of `diff(mileage)` would be
+
+| Index | Difference (Next - Current) |
+|-------|-----------------------------|
+| 1     | 65624 - 65311 = 313         |
+| 2     | 65908 - 65624 = 284         |
+| 3     | 66219 - 65908 = 311         |
+| 4     | 66499 - 66219 = 280         |
+| 5     | 66821 - 66499 = 322         |
+| 6     | 67145 - 66821 = 324         |
+| 7     | 67447 - 67145 = 302         |
+
+From the `R` output, we can see these values as well.
+
+```{r}
+diff(mileage)
+```
+
+# Problem #5
+
+Create the following data frame:
+
+```{r}
+my_data <- data.frame(student_id = c(100234, 132454, 453123),
+                      test_1_grade = c(82, 93, 87),
+                      hw_1_grade = c(92, 89, 98),
+                      session = c("7 AM", "7 PM", "7 AM"))
+my_data
+```
+
+Obtain the column names of our data frame.
+
+To get the column names, we can basically use the `colnames` function.
+
+```{r}
+colnames(my_data)
+```
+
+This function returns the column names which are `student_id`, `test_1_grade`, `hw_1_grade`, and `session`.
+
+------------------------------------------------------------------------
+
+Get the number of rows or columns in a data frame, try nrow(), ncol(), or dim() functions.
+
+```{r}
+nrow(my_data)
+ncol(my_data)
+dim(my_data)
+```
+
+`nrow()` returns the row count of our data-frame
+
+`ncol()` returns the column count of our data-frame
+
+`dim()` returns the dimensions (row count x column count) of our data-frame.
+
+------------------------------------------------------------------------
+
+To subset rows and columns of a data frame we can use the following syntax:
+
+my_data_frame[row condition, column condition]. The row/column conditions may be either numeric indexes, logical expressions, or vectors
+
+Explain the subset you get from the following code:
+
+```{r}
+my_data_frame <- data.frame(make = c("Toyota","Honda","Ford", "Toyota", "Ford", "Honda"),
+                            mpg = c(34, 33, 22, 32, 29, 27),
+                            cylinders = c(4, 4, 8, 6, 6, 8))
+my_data_frame
+```
+
+This code snippet creates a new data-frame with 3 columns (`make`, `mpg`, `cylinders`) and 6 rows. This data-frame gives information about the brand, distance the car can go on one gallon of fuel, and the number of cylinders the car has for 6 different cars.
+
+------------------------------------------------------------------------
+
+Explain the subset you get from the following code:
+
+```{r}
+my_data_frame[1:3,1:2]
+```
+
+This code snippet selects rows 1 to 3 and first two columns.
+
+------------------------------------------------------------------------
+
+```{r}
+my_data_frame[c(1, 2, 3), c(1, 2)]
+```
+
+Similar to the previous example, this code snippet also selects the first 3 rows and first 2 columns. `1:3` is equal to creating a vector from 1 to 3 which the second code snippet does.
+
+------------------------------------------------------------------------
+
+```{r}
+my_data_frame[2, c(1, 3)]
+```
+
+This code snippet specifically selects the second row of the data-frame. At the same time, it selects the first and the third columns. Different than the previous examples this is **not** a range in form of `1:3`, it is a vector with 1 **and** 3.
+
+------------------------------------------------------------------------
+
+```{r}
+my_data_frame[1:2, ]
+```
+
+This example takes the first two rows of the data-frame. At the same time, it selects all the columns as nothing was specified in the column selection part.
+
+------------------------------------------------------------------------
+
+```{r}
+logical_condition <- my_data_frame$mpg >= 30
+my_data_frame[logical_condition, ]
+```
+
+This code snippet first defines a logical condition which would return TRUE or FALSE for each row if that the `mpg` value of that row is more than or equal to 30. The logical_condition variable is a vector with TRUE and FALSE values.
+
+In the second part of the code, this vector is used to filter the rows which has an `mpg` value less than 30. Similar to the previous example, as the column is not specified, it returns all 3 columns.
+
+------------------------------------------------------------------------
+
+```{r}
+my_data_frame[my_data_frame$mpg >= 30, ]
+```
+
+This example is exactly identical as the previous example as it again checks if the mpg value for each row is more then or equal to 30. Similarly, it selects all the columns as it does not specify anything related to columns.
+
+------------------------------------------------------------------------
+
+```{r}
+my_data_frame[my_data_frame$mpg >= 32, c(2, 3)]
+```
+
+This example merges the previous examples together. We select the rows with an mpg value larger than or equal to 32. At the same time, it selects the 2nd and the 3rd columns by specifying them in a vector.
+
+------------------------------------------------------------------------
+
+```{r}
+my_data_frame[my_data_frame$mpg >= 32, c("mpg", "cylinders")]
+```
+
+In this example, it first selects the rows with an `mpg` value larger then or equal to 32. At the same time, it specifically selects the columns named `mpg` and `cylinders`.
+
+------------------------------------------------------------------------
+
+Now try to subset my_data_frame to only include rows that have a cylinders value of 4.
+
+```{r}
+my_data_frame[my_data_frame$cylinders == 4, ]
+```
+
+To do this, we can basically use the *equal to* operator. We have to select the rows with cylinder values equal to 4. At the same time, we should ensure that we select all the columns.
+
+From the result, we can see that the first and second vehicles (branded Toyota and Honda with 34 and 33 mpg respectively) has 4 cylinders.
+
+# Problem #6
+
+Create data as the following list:
+
+```{r}
+my_list <- list(classes_offered = c("MIS 431", "MIS 310", "MIS 410", "MIS 412"),
+                student_data = data.frame(student_id = c(54, 100, 32, 423, 2, 19, 39),
+                                          age = c(18, 22, 27, 18, 29, 22, 20),
+                                          gpa = c(3.1, 2.8, 3.7, 3.4, 3.2, 3.4, 3.2),
+                                          stringsAsFactors = FALSE))
+```
+
+Write the R code that calculates the median value (use the median() function) of the gpa variable in student_data. All you need to do is pass the student_id vector into the median() function.
+
+------------------------------------------------------------------------
+
+This code snippet creates a list of a vector and a data-frame. We should first access to the student_data data-frame which is inside `my_list`. Following this, we should access to the GPA column in order to pass it to the `median` function and calculate the median GPA. We can achieve this chain access using the `$` operator.
+
+```{r}
+gpa.values = my_list$student_data$gpa  # Saving the GPA values
+median(gpa.values)  # Calculating the median
+```
+
+# Problem #7
+
+Let us first create dataframes.
+
+```{r}
+Feature1A <- c("A", "B", "C", "D")
+Feature2A <- c(1000, 2000, 3000, 4000)
+Feature3A <- c(25.5, 35.5, 45.5, 55.5)
+Feature4A <- c(10, 34, 78, 3)
+Dataframe1 <- data.frame(Feature1A, Feature2A, Feature3A, Feature4A)
+colnames(Dataframe1) <- c("Feature1", "Feature2", "Feature3", "Feature4")
+Dataframe1
+# creating Dataframe2
+Feature1B <- c("E", "F", "G", "H")
+Feature2B <- c(5000, 6000, 7000, 8000)
+Feature3B <- c(65.5, 75.5, 85.5, 95.5)
+Dataframe2 <- data.frame(Feature1B, Feature2B, Feature3B)
+colnames(Dataframe2) <- c("Feature1", "Feature2", "Feature3")
+Dataframe2
+```
+
+Merge merges Features 1-3 of the two data frames and called the resulting dataframe as Output. Use function merge().
+
+------------------------------------------------------------------------
+
+```{r}
+output = merge(Dataframe1, Dataframe2, all = TRUE)
+output
+```
+
+In this case, we can directly use the merge function on both data-frames and set the `all` argument to TRUE in order to keep all rows from the both data-frames and fill the unavailable values with NA.
+
+# Problem #8
+
+## Part A
+
+Import the data from Moodle or shared Google drive, it is called pima.csv. Change the name of the nine columns to preg_times, glucose_test, blood_press, tsk_thickness, serum, bm_index, pedigree_fun, age, class.
+
+------------------------------------------------------------------------
+
+```{r}
+pima = read.csv("../../DATA/pima.csv")
+colnames(pima) = c("preg_times",
+                   "glucose_test",
+                   "blood_press",
+                   "tsk_thickness",
+                   "serum",
+                   "bm_index",
+                   "pedigree_fun",
+                   "age",
+                   "class")
+```
+
+This code snippet will simply read the `pima` dataset from my data folder and change the column names to the requested values.
+
+## Part B
+
+All patients (768 Observations) in this dataset contains are females at least 21 years old of Pima Indian heritage. All zero values for the biological variables other than number of times pregnant should be treated as missing values. Count how many zeros are there in each variable (column). For any 0 in the data (except for class and preg_times) assign it as an NA.
+
+------------------------------------------------------------------------
+
+```{r}
+summary(pima == 0)
+```
+
+When we take the summary of the values equal to 0, we will have the dataset converted to TRUE and FALSE logical values. In the summary, we can see how many TRUE values we have which shows us the count of 0 values.
+
+```{r}
+exclude.columns = c("class", "preg_times")
+selected.cols = !(colnames(pima) %in% exclude.columns)
+pima[, selected.cols][pima[, selected.cols] == 0] = NA
+```
+
+To replace the 0 values with NA, we should first save the columns we would like to exclude from this process in a vector. We should also create another vector with selected columns, so that we can apply the procedure only to these columns.
+
+After we selected the column we would like to work with, we should use these column names to select the 0 values in these respective columns and replace them with `NA` value.
+
+```{r}
+summary(pima == 0)
+```
+
+We can call the summary function again to see that the values are not TRUE anymore and they are set to NA.
+
+## Part C
+
+For class variable, check if it is a factor and if not, then make it a factor with levels 0 replaced with neg (for negative diabetic) and 1 replicated with pos (for positive diabetic).
+
+```{r}
+class(pima$class)
+```
+
+When we check the class of the class variable, we can see that it belongs to the integer class.
+
+```{r}
+pima$class = factor(pima$class,
+                    levels = c(0, 1),
+                    labels = c("neg", "pos"))
+```
+
+We can replace this column with a factor using the `factor` function. In this function, we can determine the levels as 0 and 1. At the same time, we can set the labels of these levels as "neg" and "pos" as requested in the prompt.
+
+```{r}
+class(pima$class)
+levels(pima$class)
+```
+
+We can check the class and the levels of the variable again and see that it now belongs to the factor class with levels of "pos" and "neg".
+
+## Part D
+
+Make data subsets for four age groups: 21-36, 37-51, 52-66 and 67-81.
+
+```{r}
+subset.21.36 = subset(pima, age %in% 21:36)
+subset.37.51 = subset(pima, age %in% 37:51)
+subset.52.66 = subset(pima, age %in% 52:66)
+subset.67.81 = subset(pima, age %in% 67:81)
+```
+
+We can directly use the `%in%` operator to select the age values by checking if they are in a specific range or not. We can also check the answers by looking at the min/max values in the numerical summary of the age column of these subsets.
+
+```{r}
+summary(subset.21.36$age)
+summary(subset.37.51$age)
+summary(subset.52.66$age)
+summary(subset.67.81$age)
+```
+
+## Part E
+
+Create a new factor vector called age.factor, with age in pima data replaced with the age group.
+
+```{r}
+pima$age.factor[pima$age %in% 21:36] = "21-36"
+pima$age.factor[pima$age %in% 37:51] = "37-51"
+pima$age.factor[pima$age %in% 52:66] = "52-66"
+pima$age.factor[pima$age %in% 67:81] = "67-81"
+
+pima$age.factor = factor(pima$age.factor)
+class(pima$age.factor)
+summary(pima$age.factor)
+```
+
+In this example we can set the values of the new column `age.factor` to the specific age groups, using the same selection method we used in the previous part.
+
+After setting the values, we can directly convert this column into a factor. Lastly, we can check the class of the `age.factor` to ensure the type is correct.
+
+# Project Problem
+
+Do the following for the approved dataset(s):
+
+### Part (A) Read the data here in R.
+
+```{r}
+traffic.data = read.csv("../../DATA/ca_san_francisco_2020_04_01.csv")
+```
+
+### Part (B) Show the structure of data.
+
+```{r}
+str(traffic.data)
+```
+
+This output shows us the variable names and the way they are recognized by R. This shows me that in the future parts of my project, I might have to convert some of the columns to appropriate data types as date/time are recognized as strings (they should be date and time objects, some of the categorical variables (such as subject sex/age/race) are not recognized a factors, etc.
+
+### Part (C) What is the dimension of your data?
+
+```{r}
+dim(traffic.data)
+```
+
+From this output, we can see that the dataset has 22 columns and 905070 rows.
+
+### Part (D) Show names of variables in the data.
+
+```{r}
+colnames(traffic.data)
+```
+
+Similar to the structure, this part gives us the variable names of the dataset.
+
+### Part (E) Find easy answers to your research question (one of them) using the data
+
+One of my research questions was: ***How do traffic stop rates vary by driver demographic characteristics?***
+
+------------------------------------------------------------------------
+
+Before tackling the question and plotting the results, there are two data preparation steps we have to complete:
+
+```{r}
+traffic.data$subject_sex = factor(traffic.data$subject_sex,
+                                  levels = c("male", "female"),
+                                  labels = c("Male", "Female"))
+
+traffic.data$date = as.Date(traffic.data$date)
+summary(traffic.data$date)
+```
+
+I converted the subject_sex column to a R-factor. At the same time, I converted the date into a real date column in order to extract the year data from each entry.
+
+Lastly, I checked the summary of the date column to see the starting and the end date of the data.
+
+------------------------------------------------------------------------
+
+In this question -as an easy answer is asked- I am going to focus on the gender information of the traffic stops.
+
+At first step, I am going to look into the gender information of stopped drivers for the whole time frame.
+
+```{r}
+group.gender.total = aggregate(traffic.data$raw_row_number,
+                               by = list(traffic.data$subject_sex),
+                               FUN = length)
+colnames(group.gender.total) = c("Gender", "Count")
+
+group.gender.total
+```
+
+From this output, we can see that the amount male drivers stopped is much higher than (approximately 2.4 times higher) than the female drivers.
+
+------------------------------------------------------------------------
+
+At the second stage of this problem, I grouped the data by year and also gender. This allowed me to see the gender distribution of the traffic stops throughout the years.
+
+```{r}
+
+group.gender.year.total = aggregate(x = traffic.data$raw_row_number,
+                                    by = list(traffic.data$subject_sex,
+                                              format(traffic.data$date, "%Y")),
+                                    FUN = length)
+
+colnames(group.gender.year.total) = c("Gender", "Year", "Count")
+
+group.gender.year.total
+```
+
+From this table, we can see that throughout the years the trend of "male drivers being stopped more then female drivers" continued. It is important to note that 2016 data is available only until June which explains the less than usual amount of data points. In the future parts of my data exploration and modeling, I might consider to remove 2016 data from the dataset when comparing years.
+
+------------------------------------------------------------------------
+
+From both of these simple data explorations, we can see that male drivers have been stopped significantly more compared to the female drivers in San Francisco between January 1st 2007 and June 30th 2016 in both total number of stops through the time period and also the total number of stops annually.
+
+Another demographic information I would like to explore is the relationship between the age and the number of stops. As the question asked for easy answers I limited myself only to the gender part of this dataset. In the further assignments I can include subject age, and race to the demographic data exploration part of the project.
+
+------------------------------------------------------------------------
