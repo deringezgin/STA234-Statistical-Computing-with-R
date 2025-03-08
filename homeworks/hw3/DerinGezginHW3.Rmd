@@ -9,11 +9,12 @@ csl: apa.csl
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+register_stadiamaps("30cc96f4-7081-4f0e-9c6e-61f5c5b0bf82")
 ```
 
 ### Importing Required Libraries Before Start
 
-```{r}
+```{r message=FALSE}
 library(ggplot2)
 library(mosaicData)
 library(mdsr)
@@ -223,8 +224,9 @@ BMI.histogram.grouped = ggplot(data = pima,
                        y =(..count..)/sum(..count..))) +
     scale_y_continuous(labels=scales::percent,"Percent") +
     xlab("BMI") + 
-    ggtitle("BMI of Women for Each Age Group") + 
-    labs(fill = "Age Groups")
+    labs(title = "BMI of Women",
+         subtitle = "Colored by Age Group",
+         fill = "Age Groups")
 
 BMI.histogram.grouped
 ```
@@ -262,8 +264,9 @@ splot.pressure.bmi.grouped = ggplot(data = pima,
     geom_point() +
     xlab("BMI Value") + 
     ylab("Blood Pressure") + 
-    ggtitle("Blood Pressure vs. BMI by Age Group") +
-    labs(color = "Age Group")
+    labs(title = "Blood Pressure vs. BMI",
+         subtitle = "Colored by Age Group",
+         color = "Age Group")
 
 splot.pressure.bmi.grouped
 ```
@@ -321,7 +324,8 @@ Separate the plot into facets by weekday.
 
 ```{r}
 splot.crossings.temp.facets = splot.crossings.temp +
-    ggtitle("Daily Crossings vs. High Temperature by Weekday/Weekend") +
+    labs(title = "Daily Crossings vs. High Temperature",
+         subtitle = "Facetted by Weekday / Weekend") +
     facet_wrap(~dayType, nrow = 1) + 
     theme(legend.position = "top")
 
@@ -388,7 +392,8 @@ splot.win.payroll.facet.fitted = splot.win.payroll +
     facet_wrap(~lgID, nrow = 1) + 
     theme(legend.position = "top") + 
     geom_smooth(method = "lm", se = FALSE) +
-    ggtitle("Win Percentage vs. Sum of Salaries by League")
+    labs(title = "Win Percentage vs. Sum of Salaries",
+         subtitle = "Facetted by League")
 
 splot.win.payroll.facet.fitted
 ```
@@ -435,8 +440,9 @@ splot.engine.fuel.type = ggplot(data = mpg,
     geom_point() + 
     xlab("Engine Displacement (in litres)") + 
     ylab("Fuel Consumption in City (Miles per Gallon)") + 
-    ggtitle("Cylinder Count vs. Fuel Consumption by Vehicle Class") + 
-    labs(color = "Type of Car")
+    labs(title = "Cylinder Count vs. Fuel Consumption",
+        subtitle = "Colored by Vehicle Class",
+        color = "Type of Car")
 
 splot.engine.fuel.type
 ```
@@ -452,7 +458,8 @@ splot.engine.fuel.facet = splot.engine.fuel +
     geom_point(size=0.5) + 
     facet_wrap(~class, nrow = 2) + 
     theme(legend.position = "top") +
-    ggtitle("Cylinder Count vs. Fuel Consumption by Vehicle Class")
+    labs(title = "Cylinder Count vs. Fuel Consumption",
+         subtitle = "Facetted by Vehicle Class")
     
 splot.engine.fuel.facet
 ```
@@ -482,7 +489,8 @@ Following this, we can create the scatterplot.
 splot.engine.fuel.facet.drv = splot.engine.fuel +
     facet_wrap(~drv) + 
     geom_smooth() +
-    ggtitle("Cylinder Count vs. Fuel Consumption by Driver Terrain")
+    labs(title = "Cylinder Count vs. Fuel Consumption",
+         subtitle = "Facetted by Drive Terrain")
     
 splot.engine.fuel.facet.drv
 ```
@@ -495,13 +503,13 @@ splot.engine.fuel.facet.drv
 
 Traffic stops are a regular part of our lives, in fact, more than 20 million Americans are stopped each year in the traffic [@pierson2020]. Traffic stops are one of the most common ways of public-police interaction. As police officers conduct these stops, the decision-making process comes down to human judgment, which certainly comes with a certain type of bias. There have been many research projects that focuses on possible bias factors in traffic stops. Most of these studies found that the race of the driver is an important factor influencing the likelihood of being stopped and the outcome of the stop.
 
-According to @pierson2020 Black and Hispanic drivers are stopped and searched more often than White drivers. However, Black drivers are less likely to be stopped after sunset -compared to the rate of being stopped during the day- when the face of the driver is less visible. It is also pointed out that, the bar to search Black and Hispanic drivers is generally lower than White drivers. Lastly, the study also concludes that the hit rates of searches is lower for Hispanic drivers compared to White and Black drivers who has comparable hit rates. Similarly @xu2024 points out that Black drivers are stopped at higher rates compared to their proportion in the traffic.
+According to @pierson2020 Black and Hispanic drivers are stopped and searched more often than White drivers. However, Black drivers are less likely to be stopped after sunset -compared to the rate of being stopped during the day- when the face of the driver is less visible. It is also pointed out that, the bar to search Black and Hispanic drivers is generally lower than White drivers. Lastly, the study also concludes that the success rates of searches is lower for Hispanic drivers compared to White and Black drivers who has comparable hit rates. Similarly @xu2024 points out that Black drivers are stopped at higher rates compared to their proportion in the traffic.
 
 In my data-analysis project, I am planning to focus on the demographical analysis of the traffic stops conducted in San Francisco between 2007 and 2016. I already found a research project conducted by *San Francisco Bay Area Planning and Urban Research Association (SPUR)* on San Francisco traffic stop data which only covers the 2019 data. @spur also has similar findings of @pierson2020, as it shows Black and Hispanic drivers are stopped more than their share in the population while Black drivers have significantly lower citation rate compared to White and Hispanic drivers. In fact, according to the SPUR study, more than half of the Black drivers who are stopped do not end up with citation at all. At the same time, different than the previous studies I was able to find, I am planning to focus on the locational aspects of the traffic stops and analyze the relationship between the time, outcome, demographics, and the location of the stop.
 
 I can list my possible research questions for my traffic stops data of San Francisco between 2007 and 2016 as the following:
 
-1.  What is the relationship between being stopped and the racial demographics?
+1.  What is the relationship between being stopped and the general demographics?
 
     -   How does this relationship change when we split the data into separate times of the day?
 
@@ -523,7 +531,7 @@ I can list my possible research questions for my traffic stops data of San Franc
 
 In my research project I am using the San Francisco police stop data which is a part of the Stanford Open Policing Project. The Open Policing Project is an ongoing project, that collects and organizes law enforcement stop data from different counties across the USA. San Francisco data includes details of 905,070 vehicle stops from January 1st, 2007 to June 30th, 2016. The dataset has 22 different variables on different detail of the stop such as date/time/location of the stop, age/race/sex of the driver that is stopped, and the outcome of the stop.
 
-It is important to note that, I will use data from January 1st, 2007 to December 31st, 2015, inclusive. This is crucial as having 2016 until June can skew my data and lead me to incorrect conclusions. At the same time, some of the variables like the location/district/open address, raw data fields won't be used anywhere in my research project. The final dataset I will use (without the extra variables and half of 2016) will have 864,722 stops and 16 variables.
+It is important to note that, I will use data from January 1st, 2007 to December 31st, 2015, inclusive. This is crucial as having 2016 until June can skew my data and lead me to incorrect conclusions. At the same time, some of the variables like the location/district/open address, raw data fields won't be used anywhere in my research project. The final dataset I will use (without the extra variables and half of 2016) will have 864,722 stops and 17 variables.
 
 The variables in this dataset are helpful for my research questions as they provide important details about the demographic information of each traffic stop. At the same time, I am able to access information on what happened during the stop and how did the stop resulted. In the EDA and further parts of my project, these variables will provide me with much flexibility and potential to explore more.
 
@@ -543,17 +551,34 @@ traffic.data$subject_sex = factor(traffic.data$subject_sex,
                                   labels = c("Male", "Female"))
 
 traffic.data$subject_race = factor(traffic.data$subject_race,
-                                   levels = c("asian/pacific islander","black","hispanic","white", "other"),
-                                   labels = c("Asian/Pacific Islander", "Black", "Hispanic", "White", "Other"))
+                                   levels = c("asian/pacific islander",
+                                              "black",
+                                              "hispanic",
+                                              "white",
+                                              "other"),
+                                   labels = c("Asian/Pacific Islander",
+                                              "Black",
+                                              "Hispanic",
+                                              "White",
+                                              "Other"))
 
 traffic.data$date = as.Date(traffic.data$date)
 traffic.data$time = strptime(traffic.data$time, format="%H:%M:%S")
 
+# Outcome is the most severe action taken among (warning, citation arrest).
+# If no action is taken, it is NA. I made this NA values No Action so that
+# I can make it a factor
 traffic.data$outcome[is.na(traffic.data$outcome)] = "No Action"
 
 traffic.data$outcome = factor(traffic.data$outcome,
-                              levels = c("citation", "warning", "arrest", "No Action"),
-                              labels = c("Citation", "Warning", "Arrest", "No Action"))
+                              levels = c("citation",
+                                         "warning",
+                                         "arrest",
+                                         "No Action"),
+                              labels = c("Citation",
+                                         "Warning",
+                                         "Arrest",
+                                         "No Action"))
 ```
 
 As the prompt suggests, in the initial EDA, I worked on getting straightforward answers from my dataset without anything advanced.
@@ -568,7 +593,9 @@ group.race.sex.total = aggregate(traffic.data$raw_row_number,
 
 colnames(group.race.sex.total)= c("Race", "Gender", "Count")
 
-g = ggplot(data = group.race.sex.total, aes(x = Gender, y = Count, fill=Race)) +
+g = ggplot(data = group.race.sex.total, aes(x = Gender,
+                                            y = Count,
+                                            fill = Race)) +
     geom_bar(stat = "identity", width = 0.5) +
     xlab("Gender") +
     ylab("Number of Stops") +
@@ -584,11 +611,13 @@ g
 As another demographical data exploration, I checked the distribution of the subject age
 
 ```{r}
-g = ggplot(traffic.data, aes(x = subject_age, fill=subject_race)) +
-    geom_histogram(binwidth = 2, color = "black") +
+g = ggplot(traffic.data, aes(x = subject_age,
+                             fill = subject_race)) +
+    geom_histogram(binwidth = 2,
+                   color = "black") +
     xlab("Age of the Subject") +
     ylab("Number of Stops") +
-    labs(title = "Fig.2 Distribution of Traffic Stops by Age",
+    labs(title = "Fig.2 Traffic Stops by Subject Age",
          subtitle = "Colored by Race",
          caption="Source: Stanford Open Policing Project") +
     scale_y_continuous(labels = scales::comma) + 
@@ -600,12 +629,13 @@ g
 Following this initial exploration on gender, race and age; I focused on the distribution of time of the stops throughout the time-frame.
 
 ```{r}
-g = ggplot(traffic.data, aes(x = as.numeric(format(time, "%H")), fill=subject_race)) +
+g = ggplot(traffic.data, aes(x = as.numeric(format(time, "%H")),
+                             fill = subject_race)) +
     geom_histogram(binwidth = 1, color = "black") +
     xlab("Hour of the Day") +
     ylab("Number of Stops") +
     scale_y_continuous(labels = scales::comma) +
-    labs(title = "Fig.3 Distribution of Traffic Stops by Hour",
+    labs(title = "Fig.3 Traffic Stops by Hour",
          subtitle = "Colored by Race",
          caption = "Source: Stanford Open Policing Project",
          fill = "Subject Race")
@@ -639,7 +669,7 @@ g
 
 As a bonus, I created a heat-map of the stops in order to see which parts o the city have higher traffic-stop rates.
 
-```{r}
+```{r message=FALSE}
 sf_map = get_stadiamap(bbox = c(left = -122.52,
                                 bottom = 37.70,
                                 right = -122.35,
@@ -652,21 +682,25 @@ ggmap(sf_map) +
                           aes(x = lng, y = lat),
                           alpha = 0.6) +
     scale_fill_viridis_d(option = "rocket") +
-    labs(title = "Fig.5 Heatmap of Police Stops in San Francisco",
+    labs(title = "Fig.5 Police Stops in San Francisco",
          fill = "Stop Count",
          caption = "Source: Stanford Open Policing Project") +
     xlab("Longitude") +
     ylab("Latitude")
 ```
 
-From these simple EDA steps, I was able to have a general grasp of the dataset. One of my main and strongest finding was, male drivers had been stopped significantly more than the female drivers throughout the time period we work on. At the same time, shockingly, the age-distribution of the stopped drivers does not follow a normal distribution but is significantly right-skewed. On the other hand, the distribution of the stops during the day had peaks at 17.00/22.00/23.00 PM and it significantly drops after 12AM. At the same time, when we check the outcome of the stops, we can see that it is pretty balanced among the races for all possible outcomes.
+From these simple EDA steps, I was able to have a general grasp of the dataset. One of my main and strongest finding was, according to Figure 1, male drivers had been stopped significantly more than the female drivers throughout the time period we work on. At the same time, shockingly, in Figure 2, the age-distribution of the stopped drivers does not follow a normal distribution but is significantly right-skewed. On the other hand, the distribution of the stops during the day had peaks at 17.00/22.00/23.00 PM and it significantly drops after 12AM which can be seen in Figure 3. When we check the outcome of the stops in Figure 4, we can see that it seems like pretty balanced among the races for all possible outcomes.
 
-One of the main points I will work on in the upcoming parts of this project is to proportionate my data. Despite having the stop counts for specific races for all the graphs, it is hard to comment on the relationship between the races as we do not have information about their share in the larger population. In the upcoming parts of the project, I can access the Census data for San Francisco and compare the subject race counts with the share of that specific race in the population. This can give us a more valuable insight.
+One of the main points I will work on in the upcoming parts of this project is to proportionate my data. Despite having the stop counts for specific races for all the graphs, it is hard to comment on the relationship between the races as we do not have information about their share in the larger population. In the upcoming parts of the project, I can access the census data for San Francisco and compare the subject race counts with the share of that specific race in the population. This can give us a more valuable insight.
 
-Lastly, the heat-map of the city shows us that the traffic stops really accumulate in the center area of the city while following through some major roads in the map. This plot is directly helpful to answer my 3rd research question.
+Lastly, the density map of the traffic stops (Figure 5) shows us that the traffic stops really accumulate in the center area of the city while following through some major roads in the map. This plot is directly helpful to answer my 3rd research question.
 
-In general, these simple EDA steps are helpful for me to answer my research questions I presented in the previous part. With few additions to the dataset and modifications on how I present the data, it is possible to have further information and visualizations from this dataset.
+In general, these simple EDA steps are helpful for me to answer some of my research questions I presented in the previous part. With few additions to the dataset and modifications on how I present the data, it is possible to have further information and visualizations from this dataset. As I mentioned, one of the crucial part of my data presentation would be normalizing the data by race distribution in order to have a better comparison.
 
 ## Resources
+
+-   How to extract time from the HH:MM. [Source](https://stackoverflow.com/questions/10705328/extract-hours-and-seconds-from-posixct-for-plotting-purposes-in-r)
+
+-   How to create a heat-map of the San Francisco police stops: [ggmap](https://github.com/dkahle/ggmap) / [Stadia Documentation](https://docs.stadiamaps.com/tutorials/getting-started-in-r-with-ggmap/) / [Density Map](https://ggplot2.tidyverse.org/reference/geom_density_2d.html)
 
 ## References

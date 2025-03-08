@@ -1,6 +1,6 @@
 # Read the original data
 traffic.data = read.csv("../DATA/ca_san_francisco_2020_04_01.csv")
-
+library(ggmap)
 # Remove the columns that are not needed
 toRemove = c("location",
              "district",
