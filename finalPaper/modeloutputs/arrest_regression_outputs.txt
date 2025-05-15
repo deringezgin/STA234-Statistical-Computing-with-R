@@ -1,0 +1,56 @@
+
+> summary(arrest_model)
+
+Call:
+glm(formula = arrest_made ~ subject_race + subject_sex + subject_age, 
+    family = binomial, data = traffic.data)
+
+Coefficients:
+                       Estimate Std. Error z value
+(Intercept)          -4.0703665  0.0414092 -98.296
+subject_raceBlack     1.0202875  0.0349593  29.185
+subject_raceHispanic  0.8505709  0.0372750  22.819
+subject_raceOther     0.0445027  0.0459988   0.967
+subject_raceWhite     0.3215469  0.0341678   9.411
+subject_sexFemale    -0.4553516  0.0237931 -19.138
+subject_age          -0.0164724  0.0007847 -20.993
+                                Pr(>|z|)    
+(Intercept)          <0.0000000000000002 ***
+subject_raceBlack    <0.0000000000000002 ***
+subject_raceHispanic <0.0000000000000002 ***
+subject_raceOther                  0.333    
+subject_raceWhite    <0.0000000000000002 ***
+subject_sexFemale    <0.0000000000000002 ***
+subject_age          <0.0000000000000002 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 114915  on 801573  degrees of freedom
+Residual deviance: 112278  on 801567  degrees of freedom
+AIC: 112292
+
+Number of Fisher Scoring iterations: 7
+
+
+> exp(coef(arrest_model))
+         (Intercept)    subject_raceBlack subject_raceHispanic 
+          0.01707113           2.77399213           2.34098300 
+   subject_raceOther    subject_raceWhite    subject_sexFemale 
+          1.04550781           1.37925966           0.63422494 
+         subject_age 
+          0.98366255 
+
+> anova(arrest_model, arrest_0, test = "Chisq")
+Analysis of Deviance Table
+
+Model 1: arrest_made ~ subject_race + subject_sex + subject_age
+Model 2: arrest_made ~ 1
+  Resid. Df Resid. Dev Df Deviance              Pr(>Chi)    
+1    801567     112278                                      
+2    801573     114915 -6    -2637 < 0.00000000000000022 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+> sink()

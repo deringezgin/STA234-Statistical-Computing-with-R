@@ -587,7 +587,7 @@ Asian/Pacific Islanders represented 34.6% of the population in 2012. As I showed
 
 ### Normalizing the Proportions
 
-While these proportions are valid for each year and race, as we duplicate them for each individual traffic stop, they do not have a clear use for our plots. At the same time, all the years do not have th esame race distribution. We have to normalize these values so that we will have the weighted value of each stop.
+While these proportions are valid for each year and race, as we duplicate them for each individual traffic stop, they do not have a clear use for our plots. At the same time, all the years do not have the same race distribution. We have to normalize these values so that we will have the weighted value of each stop.
 
 As we are trying to show a **fair** analysis of data across the races, we have to take the multiplicative inverse of the weights. This ensures that groups with a smaller share in the population is equally represented.
 
@@ -809,7 +809,6 @@ stop.map.race = ggmap(sf_map) +
     theme(panel.spacing.x = unit(2, "lines"))
 
 stop.map.race
-
 ```
 
 As an addition to the figure 7, I split it to facets of different races. Interestingly, we can see that traffic stops of Black drivers have accumulated in specific places in the city while Hispanic drivers' traffic stops have followed a path (which can point to a major road). In the future parts of the project, I will examine the reasoning of this relationship as White, Asian and Hispanic drivers do not show this peak pattern and have more linear distribution around the map.

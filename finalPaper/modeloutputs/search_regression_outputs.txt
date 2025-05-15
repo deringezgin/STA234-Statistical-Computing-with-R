@@ -1,0 +1,56 @@
+
+> summary(search_model)
+
+Call:
+glm(formula = search_conducted ~ subject_race + subject_sex + 
+    subject_age, family = binomial, data = traffic.data)
+
+Coefficients:
+                       Estimate Std. Error z value
+(Intercept)          -2.5624839  0.0244520 -104.80
+subject_raceBlack     2.2189308  0.0212139  104.60
+subject_raceHispanic  1.6542467  0.0223803   73.92
+subject_raceOther     0.6185468  0.0263879   23.44
+subject_raceWhite     0.6016913  0.0220913   27.24
+subject_sexFemale    -0.7699831  0.0126514  -60.86
+subject_age          -0.0337887  0.0004255  -79.40
+                                Pr(>|z|)    
+(Intercept)          <0.0000000000000002 ***
+subject_raceBlack    <0.0000000000000002 ***
+subject_raceHispanic <0.0000000000000002 ***
+subject_raceOther    <0.0000000000000002 ***
+subject_raceWhite    <0.0000000000000002 ***
+subject_sexFemale    <0.0000000000000002 ***
+subject_age          <0.0000000000000002 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 365794  on 801573  degrees of freedom
+Residual deviance: 324249  on 801567  degrees of freedom
+AIC: 324263
+
+Number of Fisher Scoring iterations: 6
+
+
+> exp(coef(search_model))
+         (Intercept)    subject_raceBlack subject_raceHispanic 
+          0.07711296           9.19749197           5.22913919 
+   subject_raceOther    subject_raceWhite    subject_sexFemale 
+          1.85622861           1.82520314           0.46302088 
+         subject_age 
+          0.96677577 
+
+> anova(search_model, search_0, test = "Chisq")
+Analysis of Deviance Table
+
+Model 1: search_conducted ~ subject_race + subject_sex + subject_age
+Model 2: search_conducted ~ 1
+  Resid. Df Resid. Dev Df Deviance              Pr(>Chi)    
+1    801567     324249                                      
+2    801573     365794 -6   -41546 < 0.00000000000000022 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+> sink()

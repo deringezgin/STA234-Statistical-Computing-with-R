@@ -1,0 +1,181 @@
+---
+title: 'STA234: Extra Credit'
+author: "Derin Gezgin"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE)
+
+knitr::opts_knit$set(root.dir = "/Users/deringezgin/Documents/2024-2025/SPRING 2025/STA234 Statistical Computing with R/STA234_codes/DATA")
+options(scipen = 999)
+```
+
+# Importing the Necessary Libraries
+
+```{r}
+library(Lahman)
+library(dplyr)
+```
+
+# Problem 1
+
+For this work, you will explore Sean Lahman’s historical baseball database, which contains complete seasonal records for all players on all Major League Baseball teams going back to 1871. These data are made available in R via the Lahman package.
+
+Sean Lahman’s Baseball Database is not just one dataset. Type help("Lahman-package") to get an idea of the data tables available. The batting statistics of players are stored in one table (Batting), while information about people (most of whom are players) is in a different table (Master).
+
+Every row in the Batting table contains the statistics accumulated by a single player during a single stint for a single team in a single year. Thus, a player like Manny Ramirez has many rows in the Batting table.
+
+## 1.A
+
+### Create a new dataset from Batting called manny to include the rows of data from Manny Ramirez only. How many rows are in the data frame many?
+
+Before finding the number of data rows in the `Batting` for Manny Ramirez, I have to find the `playerID` of Manny Ramirez using the `People` table.
+
+```{r}
+mRamirez = People %>% 
+    filter(nameFirst == "Manny", nameLast == "Ramirez")
+
+mRamirez$playerID
+```
+
+From this output, we can see that the `playerID` of Manny Ramirez is `ramirma02`. Now we can filter the `Batting` dataframe to only have the data for Manny Ramirez.
+
+```{r}
+many = subset(Batting,
+              playerID == "ramirma02")
+
+nrow(many)
+```
+
+We can see that the data frame `many` has 21 rows.
+
+## 1.B
+
+### Sort the dataset manny in increasing order of yearID, and name the new dataset as manny_sort.
+
+```{r}
+manny_sort = many %>% 
+    arrange(yearID)
+```
+
+We can `arrange` the data frame `many` by `yearID` to sort it in the decreasing order.
+
+## 1.C
+
+### Using what we’ve learned from dplyr package, we can quickly tabulate Ramirez’s most common career offensive statistics. Some baseball background knowledge: A hit (H) occurs when a batter reaches base safely. A home run (HR) occurs when the ball is hit out of the park or the runner advances through all of the bases during that play. Barry Bonds has the record for most home runs (762) hit in a career. A player’s batting average (BA) is the ratio of the number of hits to the number of eligible at-bats. The highest career batting average in major league baseball history of 0.366 was achieved by Ty Cobb-season averages above 0.300 are impressive. Finally, runs batted in (RBI) is the number of runners (including the batter in the case of a home run) that score during that batter’s at-bat. Hank Aaron has the record for most career RBIs with 2,297.
+
+### Now, please calculate the following statistics for Manny Ramirez:
+
+-   BA
+-   total Hits
+-   total home runs
+-   total runs batted in.
+
+```{r}
+manny_stats = manny_sort %>%
+    summarize(BA = sum(H, na.rm = TRUE) / sum(AB, na.rm = TRUE),
+              total_Hits = sum(H, na.rm = TRUE),
+              total_HR = sum(HR, na.rm = TRUE),
+              total_RBI = sum(RBI, na.rm = TRUE))
+
+manny_stats
+```
+
+Using the given values of hits, home runs, batted in runs, and the formula for the batting average, we can display the statistics for Manny Ramirez.
+
+## 1.D
+
+### However, we also see that Ramirez played for five teams during his career. Did he perform equally well for each of them? Breaking his statistics down by team, or by league, is as easy as adding an appropriate `group_by()` command.
+
+### Display Manny Ramirez’s records (as done above), grouped by teams he played for.
+
+```{r}
+manny_team_stats = manny_sort %>%
+    left_join(y = Teams %>%
+                  select(teamID, yearID, name),
+              by = c("teamID", "yearID")) %>% 
+    group_by(name) %>% 
+    summarize(BA = sum(H, na.rm = TRUE) / sum(AB, na.rm = TRUE),
+              Hits = sum(H, na.rm = TRUE),
+              HR = sum(HR, na.rm = TRUE),
+              RBI = sum(RBI, na.rm = TRUE))
+
+manny_team_stats
+```
+
+As said in the prompt, we can find out this by simply adding `group_by` in our data processing pipeline. I initially merged the `Teams` dataset with `manny_sort`, in order to have the full names of the teams.
+
+From the output, we can see that Manny Ramirez performed really well in Boston Red Sox, Cleveland Indians, and (slightly less) Los Angeles Dodgers, while he was not as productive as these teams in Chicago White Sox and Tampa Bay Rays.
+
+## 1.E
+
+### Which season was Ramirez’s best as a hitter? One relatively simple measurement of batting prowess is OPS, or On-Base Plus Slugging Percentage, which is the simple sum of two other statistics: On-Base Percentage (OBP) and Slugging Percentage (SLG). The former basically measures the percentage of time that a batter reaches base safely, whether it comes via a hit (H), a base on balls (BB), or from being hit by the pitch (HBP). The latter measures the average number of bases advanced per at-bat (AB), where a single is worth one base, a double (X2B) is worth two, a triple (X3B) is worth three, and a home run (HR) is worth four. (Note that every hit is exactly one of a single, double, triple, or home run.) Let’s add this statistic to our results and use it to rank the seasons. In which year you see the highest OPS for Ramirez?
+
+```{r}
+manny_ops = manny_sort %>%
+    group_by(yearID) %>% 
+    summarise(playerID = playerID,
+              OBP = ((H + BB + HBP) / (AB + BB + HBP + SF)),
+              SLG = (((H - X2B - X3B - HR) + (2 * X2B) + (3 * X3B) + (4 * HR)) / AB),
+              OPS = OBP + SLG,
+              .groups = "drop") %>%
+    arrange(desc(OPS)) %>% 
+    slice(1)
+
+manny_ops
+```
+
+I found the formula for OBP [in this Wikipedia page](https://en.wikipedia.org/wiki/On-base_percentage) and SLG [in this Wikipedia page](https://en.wikipedia.org/wiki/Slugging_percentage). I am still not 100% sure about the formula for SLG, the part where we calculate the singles.
+
+From the current output, we can see that Manny Ramirez had the highest OPS in 2008. I initially grouped the data by year, followed by calculating the required statistics, and finally sorted the data by `OPS` and extracted the first row.
+
+## 1.F
+
+### Display a table with 6 most recent World Series MVP awardees. Include their names and ages. The following code chunk is a good start.
+
+```{r}
+ws_mvp_with_names = AwardsPlayers %>%
+    filter(awardID == "World Series MVP") %>% 
+    left_join(People, by = "playerID") %>%
+    mutate(age = yearID - birthYear,
+           full_name = paste(nameFirst, nameLast)) %>%
+    select(yearID, full_name, age) %>%
+    arrange(desc(yearID)) %>% 
+    slice(1:6)
+
+ws_mvp_with_names
+```
+
+From the `?Lahman` window, I can see that there is a dataset called `AwardsPlayers`, where I can access the previous awardees. To get the full names of the awardees, I just joined the `People` dataset by the `AwardsPlayers`, to show awardees with their names.
+
+# Problem 2
+
+### Using Teams data in R package Lahman, write a function called `count_seasons` that, when given a `teamID`, will count the number of seasons the team played in the `Teams` data frame from the `Lahman` package. Set default teamID as “BS1”.
+
+```{r}
+count_seasons = function(teamID = "BS1") {
+    Teams %>%
+        filter(teamID == !!teamID) %>%
+        nrow()
+}
+```
+
+This is a simple function that filters the `Teams` dataset by the given team and then returns the number of rows. I learned about the injection operator [initially here](https://www.r-bloggers.com/2019/07/bang-bang-how-to-program-with-dplyr/), and also checked the `help("!!")` documentation.
+
+Trying with the default input
+
+```{r}
+count_seasons()
+```
+
+Trying with a different input
+
+```{r}
+count_seasons("SEA")
+```

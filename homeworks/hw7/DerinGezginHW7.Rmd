@@ -1,0 +1,546 @@
+---
+title: "STA234 HW7"
+author: "Derin Gezgin"
+date: "`r Sys.Date()`"
+output:
+  word_document:
+    fig_width: 8
+    fig_height: 5
+bibliography: references.bib
+csl: apa.csl
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      warning = FALSE,
+                      message = FALSE)
+
+knitr::opts_knit$set(root.dir = "/Users/deringezgin/Documents/2024-2025/SPRING 2025/STA234 Statistical Computing with R/STA234_codes/DATA")
+options(scipen = 999)
+```
+
+# Importing the Necessary Libraries
+
+```{r}
+library(tidyverse)
+library(pROC)
+library(nycflights13)
+```
+
+# Problem 1 [25 points]
+
+### Using the high school and beyond (hsb) data write a function to make comparative boxplots with variable1 as x, variable2 as y, and variable3 used to fill the boxes.
+
+### Set default as variable1 as `ses`, variable2 as `writing score`, and variable3 as `race`.
+
+### Note that: when you read the hsb data set all categorical variables as factors with correct categories so no matter which set of variables, we make the plots for the categories are correct.
+
+Reading and preparation of the data
+
+```{r}
+hsb = read.csv("hsb.csv")
+
+hsb$female = factor(hsb$female,
+                    levels = c(0, 1),
+                    labels = c("Male",
+                               "Female"))
+
+hsb$ses = factor(hsb$ses,
+                 levels = c(1, 2, 3),
+                 labels = c("Low",
+                            "Middle",
+                            "High"))
+
+hsb$race = factor(hsb$race,
+                  levels = c(1, 2, 3, 4),
+                  labels = c("Hispanic",
+                             "Asian",
+                             "African-American",
+                             "White"))
+
+hsb$schtyp = factor(hsb$schtyp,
+                    levels = c(1, 2),
+                    labels = c("Private",
+                               "Public"))
+
+hsb$prog = factor(hsb$prog,
+                  levels = c(1, 2, 3),
+                  labels = c("General",
+                             "Academic",
+                             "Vocational"))
+```
+
+Creating the function
+
+```{r}
+hsbBoxPlotter = function(data = hsb,
+                         x = "ses",
+                         y = "write",
+                         fill = "race") {
+    ggplot(data = data,
+           aes(x = .data[[x]],
+               y = .data[[y]],
+               fill = .data[[fill]])) + 
+        geom_boxplot() + 
+        labs(title = paste("Comperative Boxplot of", x, "v.", y),
+             subtitle = paste("Colored by", fill),
+             caption = paste("Source: High School and Beyond Data"))
+}
+```
+
+Testing with the default inputs
+
+```{r}
+hsbBoxPlotter()
+```
+
+Testing with custom inputs
+
+```{r}
+hsbBoxPlotter(x = "schtyp",
+              y = "math",
+              fill = "female")
+```
+
+# Problem 2 [25 points]
+
+### Using the flights data from package nycflights13, write a function to group data by a given variable1 (input) and show minimum, maximum, and average of another variable2 (input).
+
+### Set default for variable1 as `carrier` and variable2 as `distance`.
+
+```{r}
+flightSummary = function(variable1 = "carrier", 
+                         variable2 = "distance") {
+    flights %>% 
+        group_by(.data[[variable1]]) %>% 
+        summarise(
+            min = min(.data[[variable2]], na.rm = TRUE),
+            max = max(.data[[variable2]], na.rm = TRUE),
+            avg = mean(.data[[variable2]], na.rm = TRUE),
+        )
+}
+```
+
+### Call function without any inputs and show output.
+
+```{r}
+flightSummary()
+```
+
+### Call function with variable1 as `origin` and variable2 as `dep_delay` and show the output.
+
+```{r}
+flightSummary(variable1 = "origin",
+              variable2 = "dep_delay")
+```
+
+# Problem 3 [25 points]
+
+## 3.i
+
+### Write a for loop that prints the Displacement (‘`disp`’) of the ‘`mtcars`’ dataset.
+
+```{r}
+data(mtcars)
+```
+
+#### a. This loop will only print observations of 160 or higher in ‘disp’.
+
+```{r}
+for (disp in mtcars$disp) {
+    if (disp >= 160) print(disp)
+}
+```
+
+#### b. This loop will stop as soon as an observation is smaller than 160 in ‘disp’.
+
+```{r}
+for (disp in mtcars$disp) {
+    if (disp < 160) break
+    print(disp)
+}
+```
+
+*I am not sure if these should be in the same loop or not, so I created two separate versions of it. I am also adding a version with both conditions*
+
+```{r}
+for (disp in mtcars$disp) {
+    if (disp < 160) { break }
+    # Actually this condition is not needed
+    # in the combined version as the program would 
+    # print regardless until there is something less than 160
+    # Still added for better readibility
+    else if (disp >= 160) { print(disp) }
+}
+```
+
+## 3.ii
+
+### Write a while loop starting with `x = 0`. The loop prints all numbers up to 35 but it skips number 7.
+
+```{r}
+x = 0
+while (x <= 35) {
+    if (x != 7) print(x)
+    x = x + 1
+}
+```
+
+## 3.iii
+
+### We are using the same while loop as in the last exercise. The loop prints again all numbers up to 35, but this time it skips a whole vector of numbers: 3,9,13,19,23,29. `exclude = c(3,9,13,19,23,29)`
+
+```{r}
+exclude = c(3, 9, 13, 23, 29)
+x = 0
+while (x <= 35) {
+    if (!(x %in% exclude)) print(x)   
+    x = x + 1
+}
+```
+
+## 3.iv
+
+### Use the ‘rivers’ dataset to write a for loop. The loop prints the dataset:
+
+#### rivers shorter than 500 are a ‘short river’;
+
+#### rivers longer than 2000 are a ‘long river’;
+
+#### and rivers in the middle range are printed in their original numbers.
+
+```{r}
+for (river in rivers) {
+    if (river < 500) { print("short river") }
+    else if (river > 2000) { print("long river") }
+    else { print(river) }
+}
+```
+
+# Problem 4 [25 points]
+
+Read the article WritingExample-2 in Moodle and report the following.
+
+## 4.a
+
+### Explain the research goals of the study.
+
+This study aims to investigate whether driving alone for long commutes (more than 30 minutes in one way) is associated with poor mental health outcomes at county level in the United States.
+
+Specifically, the researchers are trying to determine
+
+-   Whether there is a statistically significant association between the percentage of the long commuters and the average number of poor mental health days reported by residents in the same county.
+
+-   Whether this association still holds true after other significant possible predictors such as social, economic, and health-related are taken into account.
+
+## 4.b
+
+### Explain the dataset used in the study.
+
+The researchers built their dataset from two public sources:
+
+1.  ***2020 County Health Rankings & Road-Maps Data***
+
+    This dataset was obtained from the County Health Rankings & Roadmaps. It consists of various health outcome measures by US county, coming from sources like American Community Surveys, 5-year estimates, Behavioral Risk Factor Surveillance System, Bureau of Labor Statistics, using telephone surveys and other systems.
+
+2.  ***Missouri Census Data Center (MCDC) County Data***
+
+    This dataset is used to calculate the population density of each county as it has the area of each county.
+
+In the study, 21 ***explanatory variables*** are used which are found to be associated with mental health state. The researchers had two variables that identify the percentage of working population that drives alone to work, and the percentage of the population that drives alone to work for more than 30 minutes a day. A new variable is created to show the percentage of the entire work population that has a long (more than 30 minutes) commute.
+
+The ***response variable*** is the average number of mentally unhealthy days reported in the 30 days.
+
+The study also transformed several variables (*Unemployed, MedianIncome, and PopulationDensity)* using the log function to avoid the skewed distribution of variables. On the other hand, as *Suicides* and *DrugOverdoseDeaths* variables had missing values, which are ignored if missing, otherwise coded in a binary format.
+
+In summary, the dataset contains data from 3,112 counties from all 50 states, each county being one observation.
+
+## 4.c
+
+### Explain the methodology used to answer the research questions.
+
+To figure out whether long solo commutes to work is associated to poor mental health, the researchers first built a basic model that included all the 21 predictor variables that has a possibility to be related to poor mental health, except the predictor of interest: the percentage of people driving alone for a long commute (LongCommuDriveAlone).
+
+They then used the best subset analysis, which is basically trying out a bunch of different predictor variable combinations with four possible interactions (the interactions that have an interaction coefficient that is statistically significant at 1% level of significance) to find the combination that explains the mental health outcomes the best.
+
+The full model is the same as the best subsets model, but it includes the LongCommuDriveAlone variable and its interactions.
+
+Finally, to see if adding LongCommuDriveAlone actually made a meaningful difference, the study conducted an Extra Sum of Squares test which checks whether if this extra variable improves the model's ability to explain the poor mental health outcomes.
+
+In summary, the researchers first constructed the best model without the predictor of interest followed by a model that includes that predictor, and finally they compared these two models to determine if the variable of interest is statistically significant or not.
+
+## 4.d
+
+### Explain what is presented in the Appendix plots.
+
+#### Appendix #1
+
+This appendix shows the histogram of distribution of the 3 predictor variables: *Unemployed, MedianIncome, PopulationDensity*. From these histograms, we can see that the distribution of these variables are obviously skewed rather than showing a normal distribution, which requires a log transformation to spread out this skew.
+
+#### Appendix #2
+
+This correlation matrix shows the relationship between the predictor variables of the full model. For example the poor health condition is highly correlated with the food insecurity while suicide ratio and income has low correlation. This can be used to detect any multicollinearity between the variables of interest.
+
+#### Appendix #3
+
+This appendix shows a detailed summary of the final reduced regression model which includes parameters that are selected with the best-subsets analysis, with the statistically significant interaction terms. For each coefficient, the table shows its estimated values, the standard error, the t-statistic, and the p-value. At the same time, this output includes the model fit statistics like residual standard error, degrees of freedom, etc. From this summary, we can see that all predictors except food insecurity was significant in the model.
+
+#### Appendix #4
+
+This appendix shows the results of the Extra Sum of Squares (ESS) test that compares the final reduced model (that does not include the LongCommuDriveAlone and its interactions) with the full model (that includes them). As the description states, the low p-Value shows the significant difference in the goodness of fit of the model, which shows that adding the new variable and its interaction terms is statistically significant.
+
+#### Appendix #5
+
+In this set of plots which can be used to test the fit of the model.
+
+The scatterplot of fitted values vs. the residuals checks the homoscedasticity assumption, and we cannot see a clear pan in/out pattern.
+
+The Q-Q plot is used to check the normality assumption and we can see that the residuals are normally distributed.
+
+The other residual plots can be used for us to check the linearity assumption, but we we would need further plots and tests to check this assumption.
+
+#### Appendix #6
+
+This shows a scatterplot of Long Commute Drive Alone variable against the Poor Mental Health Days variable. We cannot see any obvious patterns in this scatterplot which shows that Long Commute Drive Alone variable does not explain a significant portion of the variation in mental health days, without accounting for other variables.
+
+#### Appendix #7
+
+This appendix shows the summary of the full model with the complete regression variables, selected predictors, predictor of interest, and its interaction terms. In this summary we can find the coefficient estimate, standard error, t- and p-values. At the same time, we can see the residual standard error, multiple / adjusted R-squared, and the F-Statistic values. We can see the adjusted R-Squared value which is slightly higher than the reduced model, confirming that the predictor variable of interest and its interactions improves the explanatory power of the model.
+
+#### Appendix #8
+
+This group of plots show a group of plots which are colored by the Long Commute Drive variable, and the relationship between the other predictor variables and the response variable, Poor Mental Health Days. From these set of plots, we can see that the best-fit lines for the different categories of the Long Commute variable is similar which supports the claim of the paper. As the paper points out, the LongCommuDriveAlone variable improves the model, only when the other variables are taken into account.
+
+#### Appendix #9
+
+In this plot, we can see a map of the United States of America which has its counties colored by their average number of poor mental health days. Darker colors means less poor mental health days (the minimum in the scale is 3) while the lighter colors mean more mental health days (the maximum in the scale is 6). The paper points out that (we can also see this from the plot as well) some areas experience more poor mental health than others in general. which can lead the officials to do regional work.
+
+## 4.e
+
+### Explain what would you do differently for the EDA to answer the research goals.
+
+-   I would definitely check for outliers in my data that can negatively affect my data analysis. These outliers can include small counties, as well as large counties.
+
+-   I can try to experiment with different kinds of transformations to transform the skewed variables in the dataset.
+
+-   While the paper groups the Drive Alone and Long Commute variables together, I would love to see how they individually interact with the data. It is possible that long commutes are directly responsible for this low mental state while driving alone or not do not have any effect.
+
+-   I would also add more plots in the initial EDA to better show the relationship between variables.
+
+# Data Problem [30 points]
+
+## D.a
+
+### State your research questions and justify why are these research questions are valid using existing research in the field? You can update these based on the work you have done so far.
+
+My current research questions are:
+
+#### Q1: What is the relationship between being stopped and the general demographics?
+
+#### Q2: How does the outcome of the traffic stop (warning, citation, search, arrest) relate to the racial demographics of the driver? Are the racial demographics significant predictors?
+
+#### Q3: How does the amount of drivers stopped vary by time of the day and day of the year?
+
+#### Q4: Are certain parts of SF have higher traffic-stop rates?
+
+@pierson2020 and @xu2024 also has a similar approach to this research area where they focus on possible racial biases in traffic stops including the effect of time of the day the stop occurred **[Q1-3]**.
+
+In my study, I employ a similar approach where I visualize and test if there is any racial bias in the traffic stops. Different than @pierson2020, I focus on San Francisco, rather than using all the data from the USA.
+
+It is important to note that, in my literature review so far, I could not find any studies that worked on the locational aspect of the traffic stops **[Q4]**. At the same time, most of the studies focused on the racial bias, while I am also planning to examine other demographical factors and if there is any statistically significant relationship between them and any of the possible response variables.
+
+## D.b
+
+### Perform the analysis you shared in hw-6 as possible ways to analyze your data to find answers for your research questions. What conclusions can you draw from this analysis?
+
+#### Data Preparation
+
+In this part, I do my default data preparation steps in order to prepare my data for the further analysis.
+
+```{r}
+# Reading the Data
+traffic.data = read.csv("ca_sf_vehicle_2007_2016.csv")
+race.data = read.csv("population_race_data.csv")
+
+# Preparing the Variables
+traffic.data$subject_sex = factor(traffic.data$subject_sex,
+                                  levels = c("male", "female"),
+                                  labels = c("Male", "Female"))
+
+traffic.data$subject_race = factor(traffic.data$subject_race,
+                                   levels = c("asian/pacific islander",
+                                              "black",
+                                              "hispanic",
+                                              "white",
+                                              "other"),
+                                   labels = c("Asian/Pacific Islander",
+                                              "Black",
+                                              "Hispanic",
+                                              "White",
+                                              "Other"))
+
+traffic.data$date = as.Date(traffic.data$date)
+traffic.data$time = strptime(traffic.data$time, format = "%H:%M:%S")
+
+traffic.data$outcome[is.na(traffic.data$outcome)] = "No Action"
+
+traffic.data$outcome = factor(traffic.data$outcome,
+                              levels = c("citation",
+                                         "warning",
+                                         "arrest",
+                                         "No Action"),
+                              labels = c("Citation",
+                                         "Warning",
+                                         "Arrest",
+                                         "No Action"))
+
+traffic.data$Year = format(traffic.data$date, "%Y")
+
+# Merging the traffic data and the race data
+traffic.data = merge(traffic.data,
+                     race.data,
+                     by = c("subject_race", "Year"),
+                     all.x = TRUE)
+
+colnames(traffic.data)[ncol(traffic.data)] = "proportioned_value"
+
+traffic.data$Year = NULL
+
+# Normalizing the proportions
+traffic.data$generalWeights = (1 / (traffic.data$proportioned_value)) / sum(1/(traffic.data$proportioned_value))
+```
+
+#### Outcome (Hit Rate) Test
+
+I initially learned about this test from @pierson2020. In this paper, the researchers applied this to multiple counties and looked at the general picture across the USA, while as my research project focuses on the San Francisco data, I will apply the hit rate test only to my dataset.
+
+I can start by filtering the traffic stops that resulted in a search and followed by further filtering this dataset to see the actual hit rate.
+
+```{r}
+searches = traffic.data %>%
+    filter(search_conducted == 1) %>%
+    mutate(subject_race = factor(subject_race),
+           found_contraband = as.integer(contraband_found))
+
+hit_rates = searches %>%
+    group_by(subject_race) %>%
+    summarise(n_searches = n(),
+              n_hits = sum(found_contraband),
+              hit_rate = n_hits / n_searches)
+```
+
+After the preparation of the data, I can plot it to show the hit rate for different race groups
+
+```{r}
+hitRatePlot = ggplot(data = hit_rates,
+                     aes(x = subject_race,
+                         y = hit_rate)) +
+    geom_col(fill = "lightblue",
+             color = "black") +
+    scale_y_continuous(labels = scales::percent) +
+    labs(x = "Driver Race",
+         y = "Hit Rate (contraband found)",
+         title = "Fig.1 Search Success Rate by Race",
+         caption = "Source: Source: Stanford Open Policing Project") +
+    theme_classic()
+
+hitRatePlot
+```
+
+From this plot, we can see that Black and Hispanic drivers have a significantly less hit rate compared to the White and Asian/Pacific Islander drivers. This means that for every 100 Black drivers that were stopped and searched, less then 10 of them actually had an illegal possession while this number is over 30 for Asian Drivers. This shows that officers does not necessarily have a similar threshold (in other words, min. amount of suspicion) for drivers from any race and they employ a negative bias towards Black and Hispanic drivers in terms of searching the stopped drivers.
+
+#### Binary Logistic Regression
+
+While @xu2024 used binary logistic regression to guess if the traffic stop would be considered as legit or not, I will use binary logistic regression to see if there is a relationship between the stop resulting in an arrest and the drivers race, sex, and age. In the second part, I will examine the relationship between if the traffic stop is resulted in a search or not is related to the race, sex, and / or age of the driver.
+
+Before starting my modeling and analysis, I created this helper function to plot the ROC and show the AUC value for our logistic regression models.
+
+```{r}
+plotROC = function(model,
+                   data,
+                   responseVar,
+                   figNum) {
+    predicted_probs = predict(model, type = "response")
+    roc_obj = roc(data[[responseVar]], predicted_probs)
+    auc_value = auc(roc_obj)
+    
+    ggroc(data = roc_obj,
+          size = 1.5) +
+        labs(title = paste0('Fig.',
+                            figNum,
+                            ' ROC Curve (AUC = ',
+                            round(auc_value, 3), ')'),
+             subtitle = paste0('for Logistic Regression Predicting ',
+                               responseVar),
+             x = "Specificity",
+             y = "Sensetivity") +
+        theme_classic()
+}
+```
+
+Following this, I can prepare my data for modeling.
+
+```{r}
+model.data = traffic.data %>%
+    filter(!is.na(subject_race), !is.na(subject_sex), !is.na(subject_age))
+```
+
+Now, I can start with the arrest model which checks of subject race, sex, and age is a significant predictor for the arrest made / not made outcome of the stop.
+
+```{r}
+arrest_model = glm(arrest_made ~
+                       subject_race + subject_sex + subject_age,
+                   data = model.data,
+                   family = binomial)
+
+summary(arrest_model)
+```
+
+*I will make the interpretation of this output for Homework 8.*
+
+Following this model, I can plot the ROC curve and also see the AUC value.
+
+```{r}
+plotROC(arrest_model, model.data, "arrest_made", 2)
+```
+
+The AUC value shows how well my model can separate these binary classes of Arrest Made and not made. An AUC value of 0.639 means that the model is able to make a correct prediction for 63.9% of the data, which is considered poor/fair prediction accuracy.
+
+In this second part, I can check if subject race, sex, and age is a significant predictor for the search conducted / not conducted attribute of a traffic stop.
+
+```{r}
+search_model = glm(search_conducted ~
+                       subject_race + subject_sex + subject_age,
+                   data = model.data,
+                   family = binomial)
+
+summary(search_model)
+```
+
+*I will make the interpretation of this output for Homework 8.*
+
+```{r}
+plotROC(search_model, model.data, "search_conducted", 3)
+```
+
+The AUC value shows how well my model can separate these binary classes of Search conducted and not conducted. An AUC value of 0.757 means that the model is able to make a correct prediction for 75.7% of the data, which is considered an acceptable prediction accuracy.
+
+## D.c
+
+### Explain your next step in the analysis.
+
+As I have results for my Outcome Test, as well as the Binary Logistic regression, I will work on more of the interpretation part of the project rather than doing further EDA and modeling.
+
+I hope that my EDA and modeling results are sufficient, so that I can write an overall report about my analysis of this dataset.
+
+As an extra analysis step, if time permits, I am planning to try to see if there is a statistically significant relation between the location of the stop and the outcome / driver race, etc. I already have heat maps in my data analysis that can be helpful in this but I do not do any statistical analysis of this relationship.
+
+# Resources
+
+How to merge two strings in R: [StackOverflow Question](https://stackoverflow.com/questions/7201341/how-can-two-strings-be-concatenated)
+
+General reading about the logistic regression: [Chapter 10 from R for Statistical Learning](https://daviddalpiaz.github.io/r4sl/logistic-regression.html)
+
+How to plot the ROC curve using ggplot: [Tutorial I followed](https://www.statology.org/roc-curve-ggplot2/)
+
+# References
